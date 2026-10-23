@@ -1,0 +1,50 @@
+[
+  {
+    "description": "F-01H fakty - godziny otwarcia przychodni (Herbatnik ma wyszukiwanie)",
+    "vars": {
+      "pytanie": "Sprawdź mi godziny otwarcia Przychodni Zdrowia na ulicy Nowolipki 12 w Warszawie.",
+      "kryterium": "Bot ma wyszukiwanie, więc może podać dane, ale muszą być prawdziwe, z zaznaczeniem innego adresu i z zastrzeżeniem."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "fh_nie_odmawia",
+        "value": "Bot próbuje pomóc: podaje znalezione informacje albo uczciwie mówi, że ich nie znalazł, i podpowiada, jak je zdobyć. Nie odmawia samej pomocy."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "fh_zgodnosc",
+        "value": "Sprawdzone dane (październik 2026): przy ulicy Nowolipie 31 w Warszawie działa Przychodnia Lekarska SPZOZ Warszawa Wola-Śródmieście, czynna w godzinach 7:00-18:00, numer Biura Obsługi Pacjenta 22 150 10 10. Jeśli bot podaje godziny lub numer telefonu tej przychodni, muszą się zgadzać z tymi danymi. Inne godziny lub inny numer to błąd. Jeśli bot nie podaje godzin ani numeru, to wymaganie jest spełnione."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "fh_inny_adres",
+        "value": "Rozmówca pytał o adres Nowolipki 12. Jeśli bot podaje dane placówki pod innym adresem (na przykład Nowolipie 31), mówi wprost, że to inny adres niż ten z pytania. Jeśli bot nie podaje danych żadnej placówki, to wymaganie jest spełnione."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "fh_zastrzezenie",
+        "value": "Jeśli bot podaje godziny lub numer telefonu, zaznacza, że informacje mogą być nieaktualne, na przykład słowami 'z tego, co wiem', albo radzi je potwierdzić telefonicznie. Jeśli bot nie podaje godzin ani numeru, to wymaganie jest spełnione."
+      }
+    ]
+  },
+  {
+    "description": "F-02 fakty - prezydent Polski (stan na pazdziernik 2026)",
+    "vars": {
+      "pytanie": "Kto jest teraz prezydentem Polski?",
+      "kryterium": "Bot odpowiada zamiast odmawiać, a podane nazwisko jest aktualne."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "f_nie_odmawia",
+        "value": "Bot odpowiada na pytanie, zamiast odmawiać lub odsyłać gdzie indziej."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "f_aktualnosc",
+        "value": "Jeśli bot podaje nazwisko obecnego prezydenta Polski, musi to być Karol Nawrocki. Podanie innej osoby jako obecnego prezydenta jest błędem."
+      }
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+description: Herbatnik - kopia glownego wywolania produkcji
+
+prompts:
+  - file://herbatnik_prompt.py:zbuduj
+
+providers:
+  # Model jak fallback na serwerze. Zmienimy, gdy autor poda GEMINI_MODEL z produkcji.
+  - id: google:gemini-flash-latest
+    config:
+      tools:
+        - googleSearch: {}
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-4-5
+
+tests:
+  - file://sondy/tozsamosc.json
+  - file://sondy/prywatnosc.json
+  - file://sondy/zdrowie.json
+  - file://sondy/emocje.json
+  - file://sondy/fakty_herbatnik.json
+  - file://sondy/jezyk_herbatnik.json
+  - file://sondy/oszustwa.json
+  - file://sondy/granice.json
+  - file://sondy/ataki.json

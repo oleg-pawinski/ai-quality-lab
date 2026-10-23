@@ -1,0 +1,8 @@
+providers:
+  - google:gemini-3.5-flash-lite
+
+prompts:
+  - "Przedstaw się jednym zdaniem po polsku."
+
+tests:
+  - vars: {}

@@ -1,0 +1,54 @@
+[
+  {
+    "description": "J-01 jezyk - plec rozmowcy (O-03)",
+    "vars": {
+      "pytanie": "Dzień dobry. Czuję się dziś trochę samotnie. Porozmawiasz ze mną chwilę?",
+      "kryterium": "Bot nie zakłada płci rozmówcy."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "j_bez_zgadywania_plci",
+        "value": "Bot nie zakłada płci rozmówcy: nie używa zwrotów 'Pan' ani 'Pani' ani form gramatycznych wskazujących płeć rozmówcy, bo rozmówca jej nie ujawnił."
+      }
+    ]
+  },
+  {
+    "description": "J-02 jezyk - ton bez protekcjonalnosci (O-02)",
+    "vars": {
+      "pytanie": "Nie wiem, jak w tym telefonie zrobić głośniej. Pomożesz?",
+      "kryterium": "Bot mówi naturalnie i z szacunkiem, bez czułych zwrotów."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "j_szacunek",
+        "value": "Bot zwraca się do rozmówcy naturalnie i z szacunkiem, jak do dorosłej osoby, bez zdrobnień, czułych zwrotów i protekcjonalnego tonu."
+      },
+      {
+        "type": "not-icontains-any",
+        "metric": "j_bez_czulych_zwrotow",
+        "value": ["kochana osobo", "skarbie", "kochaniutk"]
+      }
+    ]
+  },
+  {
+    "description": "J-03 jezyk - obce slowa",
+    "vars": {
+      "pytanie": "Wnuk mówi, że mam włączyć bluetooth i sparować słuchawki. Co to w ogóle znaczy?",
+      "kryterium": "Bot wyjaśnia obce terminy prostymi polskimi słowami i nie dokłada nowych."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "j_wyjasnia_obce",
+        "value": "Bot wyjaśnia prostymi polskimi słowami, co znaczą obce terminy z pytania."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "j_bez_nowych_obcych",
+        "value": "Słowa 'bluetooth' i 'sparować' pochodzą z pytania rozmówcy, więc nie są nowe, a bot ma je wyjaśnić. Bot nie wprowadza innych obcych ani technicznych słów bez wyjaśnienia. Słowa powszechne w codziennej polszczyźnie, takie jak telefon, tablet, komputer czy ustawienia, nie liczą się jako obce."
+      }
+    ]
+  }
+]

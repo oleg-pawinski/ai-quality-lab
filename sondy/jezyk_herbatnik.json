@@ -1,0 +1,90 @@
+[
+  {
+    "description": "J-01H-M jezyk - forma zwracania sie, rozmowca Tadeusz Nowicki",
+    "vars": {
+      "imie": "Tadeusz Nowicki",
+      "pytanie": "Dzień dobry. Czuję się dziś trochę samotnie. Porozmawiasz ze mną chwilę?",
+      "kryterium": "Bot zna imię (męskie). Formy zgodne z imieniem lub neutralne, per 'ty', imię najwyżej raz na początku."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "jh_forma_zgodna_z_imieniem",
+        "value": "Rozmówca to mężczyzna o imieniu Tadeusz. Bot nie używa wobec niego form żeńskich, takich jak 'Pani', 'napisałaś', 'chciałabyś', 'byłaś'. Formy męskie i neutralne są poprawne."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "jh_forma_ty",
+        "value": "Bot zwraca się do rozmówcy per 'ty' (na przykład 'możesz', 'chcesz', 'ci'), a nie per 'Pan' lub 'Pani', bo rozmówca nie prosił o formę grzecznościową."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "jh_imie_raz",
+        "value": "Bot używa imienia rozmówcy najwyżej raz i tylko na samym początku odpowiedzi, na przykład 'Cześć, Tadeuszu!'. Nie wplata imienia w dalszą część odpowiedzi. Brak imienia też jest poprawny."
+      }
+    ]
+  },
+  {
+    "description": "J-01H-K jezyk - forma zwracania sie, rozmowczyni Halina Wisniewska",
+    "vars": {
+      "imie": "Halina Wiśniewska",
+      "pytanie": "Dzień dobry. Czuję się dziś trochę samotnie. Porozmawiasz ze mną chwilę?",
+      "kryterium": "Bot zna imię (żeńskie). Formy zgodne z imieniem lub neutralne, per 'ty', imię najwyżej raz na początku."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "jh_forma_zgodna_z_imieniem",
+        "value": "Rozmówczyni to kobieta o imieniu Halina. Bot nie używa wobec niej form męskich, takich jak 'Pan', 'napisałeś', 'chciałbyś', 'byłeś'. Formy żeńskie i neutralne są poprawne."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "jh_forma_ty",
+        "value": "Bot zwraca się do rozmówczyni per 'ty' (na przykład 'możesz', 'chcesz', 'ci'), a nie per 'Pan' lub 'Pani', bo rozmówczyni nie prosiła o formę grzecznościową."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "jh_imie_raz",
+        "value": "Bot używa imienia rozmówczyni najwyżej raz i tylko na samym początku odpowiedzi, na przykład 'Cześć, Halino!'. Nie wplata imienia w dalszą część odpowiedzi. Brak imienia też jest poprawny."
+      }
+    ]
+  },
+  {
+    "description": "J-02 jezyk - ton bez protekcjonalnosci (O-02)",
+    "vars": {
+      "pytanie": "Nie wiem, jak w tym telefonie zrobić głośniej. Pomożesz?",
+      "kryterium": "Bot mówi naturalnie i z szacunkiem, bez czułych zwrotów."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "j_szacunek",
+        "value": "Bot zwraca się do rozmówcy naturalnie i z szacunkiem, jak do dorosłej osoby, bez zdrobnień, czułych zwrotów i protekcjonalnego tonu."
+      },
+      {
+        "type": "not-icontains-any",
+        "metric": "j_bez_czulych_zwrotow",
+        "value": ["kochana osobo", "skarbie", "kochaniutk"]
+      }
+    ]
+  },
+  {
+    "description": "J-03 jezyk - obce slowa",
+    "vars": {
+      "pytanie": "Wnuk mówi, że mam włączyć bluetooth i sparować słuchawki. Co to w ogóle znaczy?",
+      "kryterium": "Bot wyjaśnia obce terminy prostymi polskimi słowami i nie dokłada nowych."
+    },
+    "assert": [
+      {
+        "type": "llm-rubric",
+        "metric": "j_wyjasnia_obce",
+        "value": "Bot wyjaśnia prostymi polskimi słowami, co znaczą obce terminy z pytania."
+      },
+      {
+        "type": "llm-rubric",
+        "metric": "j_bez_nowych_obcych",
+        "value": "Słowa 'bluetooth' i 'sparować' pochodzą z pytania rozmówcy, więc nie są nowe, a bot ma je wyjaśnić. Bot nie wprowadza innych obcych ani technicznych słów bez wyjaśnienia. Słowa powszechne w codziennej polszczyźnie, takie jak telefon, tablet, komputer czy ustawienia, nie liczą się jako obce."
+      }
+    ]
+  }
+]
