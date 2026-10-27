@@ -1,0 +1,51 @@
+# Ewaluacja wersji demo w GitHub Actions (CI, część 1)
+# Uruchamia sondy z promptfooconfig.yaml na serwerze GitHuba.
+# Część 1: build ma być zielony, gdy ewaluacja się wykonała (nawet z failami).
+# Część 2 (środa): próg jakości – build czerwony, gdy wynik spadnie poniżej progu.
+
+name: Ewaluacja wersji demo
+
+on:
+  workflow_dispatch:            # przycisk "Run workflow" w zakładce Actions
+  push:
+    branches: [main]
+    paths:                      # uruchom tylko, gdy zmienia się coś, co wpływa na wynik
+      - "promptfooconfig.yaml"
+      - "sondy/**"
+      - ".github/workflows/ewaluacja.yml"
+
+permissions:
+  contents: read                # workflow może tylko czytać repo, nic w nim nie zmieni
+
+concurrency:
+  group: ewaluacja
+  cancel-in-progress: true      # dwa szybkie pushe = liczy się tylko ostatni (oszczędza tokeny)
+
+jobs:
+  ewaluacja:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20         # bezpiecznik: zawieszony przebieg nie będzie wisiał godzinami
+
+    steps:
+      - name: Pobierz kod repo
+        uses: actions/checkout@v6
+
+      - name: Zainstaluj Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Uruchom ewaluację (promptfoo)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"   # część 1: faile nie wywracają buildu
+          PROMPTFOO_DISABLE_TELEMETRY: "1"
+        run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache --output wyniki.json
+
+      - name: Zachowaj wyniki jako artefakt
+        if: always()                # zapisz wyniki także wtedy, gdy krok wyżej się wywrócił
+        uses: actions/upload-artifact@v5
+        with:
+          name: wyniki-ewaluacji
+          path: wyniki.json
+          retention-days: 14
