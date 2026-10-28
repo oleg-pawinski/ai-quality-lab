@@ -1,7 +1,6 @@
-# Ewaluacja wersji demo w GitHub Actions (CI, część 1)
-# Uruchamia sondy z promptfooconfig.yaml na serwerze GitHuba.
-# Część 1: build ma być zielony, gdy ewaluacja się wykonała (nawet z failami).
-# Część 2 (środa): próg jakości – build czerwony, gdy wynik spadnie poniżej progu.
+# Ewaluacja wersji demo w GitHub Actions (CI, część 2)
+# Uruchamia sondy z promptfooconfig.yaml na serwerze GitHuba (3 powtórzenia),
+# a o kolorze buildu decyduje bramka jakości (bramka.py), nie samo promptfoo.
 
 name: Ewaluacja wersji demo
 
@@ -12,6 +11,7 @@ on:
     paths:                      # uruchom tylko, gdy zmienia się coś, co wpływa na wynik
       - "promptfooconfig.yaml"
       - "sondy/**"
+      - "bramka.py"
       - ".github/workflows/ewaluacja.yml"
 
 permissions:
@@ -35,15 +35,25 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Uruchom ewaluację (promptfoo)
+      - name: Uruchom ewaluację (promptfoo, 3 powtórzenia)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"   # część 1: faile nie wywracają buildu
+          PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"   # o failach decyduje bramka w kolejnym kroku
           PROMPTFOO_DISABLE_TELEMETRY: "1"
-        run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache --output wyniki.json
+        run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --repeat 3 --no-cache --output wyniki.json
+
+      - name: Bramka jakości
+        shell: bash
+        run: |
+          set +e
+          python3 bramka.py wyniki.json > bramka.txt
+          kod=$?
+          cat bramka.txt
+          { echo '```'; cat bramka.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $kod
 
       - name: Zachowaj wyniki jako artefakt
-        if: always()                # zapisz wyniki także wtedy, gdy krok wyżej się wywrócił
+        if: always()                # zapisz wyniki także wtedy, gdy bramka jest zamknięta
         uses: actions/upload-artifact@v5
         with:
           name: wyniki-ewaluacji
