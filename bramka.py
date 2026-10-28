@@ -26,7 +26,7 @@ BLOKUJACE = {
 }
 
 MIN_BLOKUJACE = 2 / 3   # metryka blokująca musi przejść w co najmniej 2 z 3 powtórzeń
-PROG_RESZTY = 0.60      # odsetek zaliczonych pozostałych metryk; do kalibracji
+PROG_RESZTY = 0.75      # odsetek zaliczonych pozostałych metryk; baza 28.10: 83% (114/138)
 
 
 def czy_blad(wiersz):

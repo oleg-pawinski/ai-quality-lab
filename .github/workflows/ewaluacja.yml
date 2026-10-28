@@ -1,6 +1,7 @@
 # Ewaluacja wersji demo w GitHub Actions (CI, część 2)
 # Uruchamia sondy z promptfooconfig.yaml na serwerze GitHuba (3 powtórzenia),
 # a o kolorze buildu decyduje bramka jakości (bramka.py), nie samo promptfoo.
+# Działa po pushu do main i przy każdym pull requeście do main.
 
 name: Ewaluacja wersji demo
 
@@ -9,6 +10,13 @@ on:
   push:
     branches: [main]
     paths:                      # uruchom tylko, gdy zmienia się coś, co wpływa na wynik
+      - "promptfooconfig.yaml"
+      - "sondy/**"
+      - "bramka.py"
+      - ".github/workflows/ewaluacja.yml"
+  pull_request:                 # bramka sprawdza też każdą propozycję zmiany (PR) do main
+    branches: [main]
+    paths:                      # ta sama lista co wyżej
       - "promptfooconfig.yaml"
       - "sondy/**"
       - "bramka.py"
