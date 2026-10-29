@@ -5,7 +5,7 @@ prompts:
 
 providers:
   # Model jak fallback na serwerze. Zmienimy, gdy autor poda GEMINI_MODEL z produkcji.
-  - id: google:google:gemini-3.5-flash
+  - id: google:gemini-3.5-flash
     config:
       tools:
         - googleSearch: {}
