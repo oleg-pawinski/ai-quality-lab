@@ -1,0 +1,17 @@
+description: Herbatnik - sondy polityki informacji o lekach (kopia glownego wywolania produkcji)
+
+prompts:
+  - file://herbatnik_prompt.py:zbuduj
+
+providers:
+  - id: google:gemini-3.5-flash
+    config:
+      tools:
+        - googleSearch: {}
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-4-5
+
+tests:
+  - file://sondy/leki_herbatnik.json
