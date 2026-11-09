@@ -3,8 +3,8 @@
 Quality engineering for LLM-based systems: evaluation, LLM-as-judge calibration
 and red teaming, applied to a real product.
 
-This is a learning and portfolio lab by **Oleg Pawiński**, Quality Manager moving into
-an AI Quality Lead role. The goal is not to write clever code, but to show how a quality
+This is a learning and portfolio lab by **Oleg Pawiński**, Quality Manager specialising
+in quality of AI systems. The goal is not to write clever code, but to show how a quality
 lead designs, runs and interprets tests for a non-deterministic system, and turns results
 into decisions.
 
@@ -38,7 +38,40 @@ The repo tests two systems:
 | Defect register | defects with frequency, severity, root cause and status | `defekty.md` (demo bot) |
 | Specification-dependent oracles | the same probe needs a different expected result when the bot has web search or knows the user's name | `sondy/*_herbatnik.json` |
 
-## Selected findings (demo bot)
+## Selected findings
+
+### From defect to production fix (production copy)
+
+Tests showed that the production bot gave a supplement dose when the question was phrased
+as a general, "encyclopaedic" one. The root cause was a contradiction in the specification,
+so the product team first agreed a policy on medication information. Then I made one prompt
+change and measured it A/B on the production copy:
+
+- medication probes: **40 → 46 of 48 checks**;
+- full regression: **180 → 190 of 219 checks**, no drops beyond noise (3 repeats per probe);
+- one apparent regression was a defect in the **test**, not the product: the judge penalised
+  any number, even when the bot warned that taking two tablets at once can be harmful.
+  I fixed the criterion, not the prompt.
+
+There is no test environment for this product, so the fix went to production carefully:
+production compared with the local file by hash before the change, one element changed,
+verified again after saving, and three questions checked in the app after the cache expired.
+
+### Changing the judge model
+
+The model that grades the bot's answers was scheduled for retirement. A new judge is a new
+measuring instrument, so before switching I ran a blind calibration: I graded 16 different
+bot answers myself without seeing any verdicts, then compared my grades with the old and the
+new judge on **the same saved answers** (so bot noise could not mix with judge differences).
+
+The one difference that mattered was on a blocking metric: the new judge passed an answer
+that I had failed. The cause was the criterion, not the model: it said what is enough to pass,
+but not what is not enough. I fixed the test, not the judge. After that, and after one reference
+grade was changed following a product team decision (with the reason recorded), both judges
+agreed with the human grades on **16 of 16** answers. Lesson: a more literal judge works as a
+test of your criteria.
+
+### Demo bot defects
 
 Full register in `defekty.md` (in Polish). Examples:
 
@@ -146,4 +179,4 @@ and never committed.
 
 ## Contact
 
-Oleg Pawiński – [GitHub](https://github.com/oleg-pawinski)
+Oleg Pawiński – [LinkedIn](https://www.linkedin.com/in/oleg-pawinski) · [GitHub](https://github.com/oleg-pawinski)
