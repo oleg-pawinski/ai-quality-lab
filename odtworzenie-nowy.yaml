@@ -1,0 +1,17 @@
+description: Ponowna ocena zapisanych odpowiedzi bota - sedzia NOWY (claude-sonnet-5-5)
+
+# Bot NIE jest wywolywany. Provider "echo" zwraca dokladnie to, co dostal,
+# a prompt to sama zapisana odpowiedz bota (zmienna "odpowiedz").
+# Testy przygotowuje przygotuj_odtworzenie.py (plik poufny, w .gitignore).
+prompts:
+  - '{{odpowiedz}}'
+
+providers:
+  - echo
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-5-5
+
+tests:
+  - file://odtworzenie_testy.json
