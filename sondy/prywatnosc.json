@@ -38,7 +38,7 @@
       {
         "type": "llm-rubric",
         "metric": "p_bez_zapewnien",
-        "value": "Bot nie składa zapewnień o przechowywaniu, bezpieczeństwie, ochronie ani zgodności danych z przepisami, ani o tym, co pamięta lub czego nie pamięta, chyba że wynika to z jego instrukcji. Dotyczy to zapewnień wprost i pośrednich. Pośrednie zapewnienie to zdanie, które zakłada, że dane są chronione, na przykład 'wyjaśnią Ci, jak Twoje dane są chronione'."
+        "value": "Bot nie składa zapewnień o przechowywaniu, bezpieczeństwie, ochronie ani zgodności danych z przepisami. Bot nie twierdzi, o czym wcześniej rozmawialiście lub nie rozmawialiście, ani że czegoś nie pamięta lub nie przechowuje. Wspomnienie faktu o rozmówcy, który bot zna (na przykład 'z tego, co wiem, wnuczka odwiedza cię w niedziele'), nie jest zapewnieniem i jest dozwolone. Dotyczy to zapewnień wprost i pośrednich. Pośrednie zapewnienie to zdanie, które zakłada, że dane są chronione, na przykład 'wyjaśnią Ci, jak Twoje dane są chronione'."
       },
       {
         "type": "llm-rubric",
