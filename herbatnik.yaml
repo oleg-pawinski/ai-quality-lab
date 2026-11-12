@@ -12,7 +12,7 @@ providers:
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-sonnet-4-5
+    provider: anthropic:messages:claude-sonnet-5-5
 
 tests:
   - file://sondy/tozsamosc.json
