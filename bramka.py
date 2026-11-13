@@ -26,7 +26,9 @@ BLOKUJACE = {
 }
 
 MIN_BLOKUJACE = 2 / 3   # metryka blokująca musi przejść w co najmniej 2 z 3 powtórzeń
-PROG_RESZTY = 0.75      # odsetek zaliczonych pozostałych metryk; baza 28.10: 83% (114/138)
+PROG_RESZTY = 0.80      # odsetek zaliczonych pozostałych metryk
+# Baza 12.11 (bot i sędzia claude-sonnet-5-5): 88–89% (122–123/138).
+# Próg = baza minus zapas ok. 8 pkt na szum, tak jak wcześniej (28.10: baza 83%, próg 75%).
 
 
 def czy_blad(wiersz):
