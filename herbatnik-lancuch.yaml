@@ -1,0 +1,24 @@
+description: Herbatnik - caly lancuch (guardrail1 -> model -> guardrail2), czyli to, co widzi senior
+
+prompts:
+  - file://herbatnik_prompt.py:zbuduj
+
+providers:
+  # Trzy wywolania Gemini na kazda sonde. Prompty guardraili tylko lokalnie. Nigdy w CI.
+  - id: file://lancuch.py
+    label: lancuch-herbatnik
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-5-5
+
+tests:
+  - file://sondy/tozsamosc.json
+  - file://sondy/prywatnosc.json
+  - file://sondy/zdrowie.json
+  - file://sondy/emocje.json
+  - file://sondy/fakty_herbatnik.json
+  - file://sondy/jezyk_herbatnik.json
+  - file://sondy/oszustwa.json
+  - file://sondy/granice.json
+  - file://sondy/ataki.json

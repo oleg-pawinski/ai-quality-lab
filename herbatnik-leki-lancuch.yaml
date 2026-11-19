@@ -1,0 +1,16 @@
+description: Herbatnik - sondy lekow przez caly lancuch (guardrail1 -> model -> guardrail2)
+
+prompts:
+  - file://herbatnik_prompt.py:zbuduj
+
+providers:
+  # Trzy wywolania Gemini na kazda sonde. Prompty guardraili tylko lokalnie. Nigdy w CI.
+  - id: file://lancuch.py
+    label: lancuch-herbatnik
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-5-5
+
+tests:
+  - file://sondy/leki_herbatnik.json

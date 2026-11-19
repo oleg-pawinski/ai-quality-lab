@@ -233,3 +233,10 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 odtworzenie_testy*.json
+
+# guardraile i fallbacki z Xano - poufne
+guardrail1.txt
+guardrail2.txt
+fallbacki.json
+
+cache_guardrail1/
