@@ -238,5 +238,6 @@ odtworzenie_testy*.json
 guardrail1.txt
 guardrail2.txt
 fallbacki.json
+zachowanie_serwera.json
 
 cache_guardrail1/

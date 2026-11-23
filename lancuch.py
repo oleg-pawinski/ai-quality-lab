@@ -1,12 +1,14 @@
 # Lancuch Herbatnika lokalnie - to, co zobaczylby senior:
 #   guardrail1 (wiadomosc seniora) -> glowny model -> guardrail2 (odpowiedz modelu) -> odpowiedz albo fallback
-# Kolejnosc jak na serwerze (opis od Jedrka). Anonimizacje pomijamy - dane w sondach sa zmyslone.
+# Anonimizacje pomijamy - dane w sondach sa zmyslone.
 #
-# Prompty guardraili i fallbacki sa POUFNE: guardrail1.txt, guardrail2.txt, fallbacki.json
-# (tylko lokalnie, w .gitignore). Ten plik ich nie zawiera, tylko je wczytuje.
+# Pliki POUFNE (tylko lokalnie, w .gitignore) - ten skrypt ich nie zawiera, tylko je wczytuje:
+#   guardrail1.txt, guardrail2.txt - prompty guardraili
+#   fallbacki.json                 - teksty, ktore senior dostaje zamiast odpowiedzi
+#   zachowanie_serwera.json        - jak serwer reaguje na kazdy werdykt (teksty, kody, nieczytelny werdykt)
 #
 # Uzycie: provider "file://lancuch.py" w herbatnik-lancuch.yaml.
-# Wynik: output = tekst dla seniora; metadata = werdykty guardraili i surowa odpowiedz modelu;
+# Wynik: output = tekst dla seniora; metadata = etap, werdykty guardraili, surowa odpowiedz modelu;
 #        tokenUsage = suma tokenow Gemini (promptfoo pokazuje ja na koncu przebiegu).
 #
 # Oszczednosc: werdykt guardrail1 zalezy tylko od wiadomosci seniora i promptu guardrail1,
@@ -28,6 +30,15 @@ MODEL = "gemini-3.5-flash"  # jak na produkcji (po stronie Google kierowany do 3
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent"
 CACHE_G1 = FOLDER / "cache_guardrail1"
 
+# Pola wymagane w zachowanie_serwera.json
+POLA_ZACHOWANIA = {
+    "sos_tekst": "tekst, ktory senior widzi, gdy guardrail1 zwroci SOS",
+    "g1_ogolna_odmowa": "tekst przy blokadzie guardrail1, gdy kod nie ma wlasnego tekstu",
+    "g1_kody_z_wlasnym_tekstem": "lista kodow blokady guardrail1, dla ktorych tekst jest w fallbacki.json jako block_<kod>",
+    "g1_nieczytelny_werdykt": "PASS albo BLAD - co robi serwer, gdy guardrail1 zwroci cos nieczytelnego",
+    "g2_nieczytelny_werdykt": "PASS albo BLAD - co robi serwer, gdy guardrail2 zwroci cos nieczytelnego",
+}
+
 
 def klucz():
     k = os.environ.get("GOOGLE_API_KEY")
@@ -38,6 +49,22 @@ def klucz():
         if linia.strip().startswith("GOOGLE_API_KEY="):
             return linia.split("=", 1)[1].strip().strip('"').strip("'")
     raise RuntimeError("Brak GOOGLE_API_KEY")
+
+
+def wczytaj_zachowanie():
+    """Czyta zachowanie_serwera.json i sprawdza, czy ma wszystkie pola. Brak pliku/pola = jasny blad."""
+    plik = FOLDER / "zachowanie_serwera.json"
+    if not plik.exists():
+        opis = "; ".join(f"{k}: {v}" for k, v in POLA_ZACHOWANIA.items())
+        raise RuntimeError(f"Brak pliku zachowanie_serwera.json (lokalny, poufny). Wymagane pola - {opis}")
+    zach = json.loads(plik.read_text(encoding="utf-8"))
+    brak = [k for k in POLA_ZACHOWANIA if k not in zach]
+    if brak:
+        raise RuntimeError(f"zachowanie_serwera.json - brak pol: {', '.join(brak)}")
+    for k in ("g1_nieczytelny_werdykt", "g2_nieczytelny_werdykt"):
+        if zach[k] not in ("PASS", "BLAD"):
+            raise RuntimeError(f"zachowanie_serwera.json - {k} musi byc PASS albo BLAD, jest: {zach[k]}")
+    return zach
 
 
 def gemini(tekst, system=None, wyszukiwarka=False):
@@ -121,6 +148,8 @@ def call_api(prompt, options, context):
         return slownik
 
     try:
+        zach = wczytaj_zachowanie()
+        fallbacki = json.loads((FOLDER / "fallbacki.json").read_text(encoding="utf-8"))
         wiadomosci = json.loads(prompt)  # z herbatnik_prompt.py: [system, user]
         system = next(w["content"] for w in wiadomosci if w["role"] == "system")
         pytanie = next(w["content"] for w in wiadomosci if w["role"] == "user")
@@ -129,14 +158,23 @@ def call_api(prompt, options, context):
         g1 = (FOLDER / "guardrail1.txt").read_text(encoding="utf-8")
         meta["guardrail1"], meta["tokeny"]["guardrail1"], meta["g1_z_pamieci"] = guardrail1(g1, pytanie)
         w1, powod1 = werdykt(meta["guardrail1"])
-        if w1 == "NIEZNANY":
+        meta["g1_format_ok"] = w1 != "NIEZNANY"
+        if w1 == "NIEZNANY" and zach["g1_nieczytelny_werdykt"] == "BLAD":
             return wynik({"error": f"guardrail1 - nieczytelny werdykt: {meta['guardrail1'][:200]}"})
         if w1 == "SOS":
             meta["etap"] = "SOS"
-            return wynik({"output": "[OKNO SOS] Guardrail1 zatrzymal lancuch. Senior widzi okno 'Zadzwon na SOS'."})
+            return wynik({"output": zach["sos_tekst"]})
         if w1 == "BLOCKED":
+            kod = (powod1.split() or [""])[0].strip(" :,.-").lower()
             meta["etap"] = "BLOKADA_WEJSCIA"
-            return wynik({"output": f"[BLOKADA WEJSCIA] {powod1}"})
+            meta["g1_kod"] = kod
+            if kod in zach["g1_kody_z_wlasnym_tekstem"]:
+                tekst = fallbacki.get(f"block_{kod}")
+                if tekst is None:
+                    # nie mamy jeszcze tego tekstu z Xano - zaznaczamy to wprost, zamiast zgadywac
+                    tekst = f"[BRAK LOKALNIE TEKSTU block_{kod} - pobrac z Xano do fallbacki.json]"
+                return wynik({"output": tekst})
+            return wynik({"output": zach["g1_ogolna_odmowa"]})
 
         # 2. glowny model - jak w herbatnik.yaml, z wyszukiwarka Google
         meta["odpowiedz_modelu"], meta["tokeny"]["model"] = gemini(pytanie, system=system, wyszukiwarka=True)
@@ -145,15 +183,14 @@ def call_api(prompt, options, context):
         g2 = (FOLDER / "guardrail2.txt").read_text(encoding="utf-8")
         meta["guardrail2"], meta["tokeny"]["guardrail2"] = gemini(g2.replace("{{assistant_response}}", meta["odpowiedz_modelu"]))
         w2, kategoria = werdykt(meta["guardrail2"])
-        if w2 not in ("PASS", "BLOCKED"):
-            return wynik({"error": f"guardrail2 - nieczytelny werdykt: {meta['guardrail2'][:200]}"})
-        if w2 == "BLOCKED":
-            fallbacki = json.loads((FOLDER / "fallbacki.json").read_text(encoding="utf-8"))
-            tekst = fallbacki.get(f"fallback_{kategoria}")
-            if tekst is None:
-                return wynik({"error": f"guardrail2 - nieznana kategoria: {kategoria}"})
+        tekst = fallbacki.get(f"fallback_{kategoria}") if w2 == "BLOCKED" else None
+        # format poprawny = PASS albo BLOCKED ze znana kategoria
+        meta["g2_format_ok"] = w2 == "PASS" or tekst is not None
+        if tekst is not None:
             meta["etap"] = f"FALLBACK_{kategoria}"
             return wynik({"output": tekst})
+        if not meta["g2_format_ok"] and zach["g2_nieczytelny_werdykt"] == "BLAD":
+            return wynik({"error": f"guardrail2 - nieczytelny werdykt: {meta['guardrail2'][:200]}"})
 
         meta["etap"] = "ODPOWIEDZ_MODELU"
         return wynik({"output": meta["odpowiedz_modelu"]})
